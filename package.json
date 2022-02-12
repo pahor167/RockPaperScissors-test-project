@@ -47,7 +47,8 @@
   "scripts": {
     "test": "hardhat test",
     "c": "hardhat compile",
-    "deploy": "hardhat run scripts/deploy.ts --network kovan"
+    "deploy": "hardhat run scripts/deploy.ts --network kovan",
+    "prettier": "prettier --write \"contracts/**/*.sol\""
   },
   "repository": {
     "type": "git",
