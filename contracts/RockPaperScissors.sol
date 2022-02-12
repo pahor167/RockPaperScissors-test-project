@@ -12,12 +12,12 @@ contract RockPaperScissors is Ownable {
     struct Game {
         // player that started the game
         uint256 betAmount;
-        address playerA;
-        address playerB;
-        bytes32 playerAMove;
-        uint48 deadline;
-        GameMove playerBMove;
-        GameState gameState;
+        bytes32 playerAMove; //32
+        address playerA; //160
+        address playerB; // 160
+        uint48 deadline; //48
+        GameMove playerBMove; //8
+        GameState gameState; //8
     }
 
     // enums
