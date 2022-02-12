@@ -127,51 +127,51 @@ describe("RockPaperScissors play tests", function () {
   //   await expect(rockPaperScissors.revealAfterDeadline(gameId)).to.be.revertedWith("game.deadline < block.timestamp");
   // });
 
-  // it("Play - return money to playerA after deadline - playerB responded ", async function () {
-  //   const depositAmount = betAmount;
+  it("Play - return money to playerA after deadline - playerB responded ", async function () {
+    const depositAmount = betAmount;
 
-  //   await testErc.connect(playerA).approve(rockPaperScissors.address, depositAmount);
-  //   const depositPlayerATx = await rockPaperScissors.connect(playerA).deposit(depositAmount);
-  //   const depositPlayerATxWait = await depositPlayerATx.wait();
-  //   expectEvent(depositPlayerATxWait.events, "Deposit", playerA.address, depositAmount);
+    await testErc.connect(playerA).approve(rockPaperScissors.address, depositAmount);
+    const depositPlayerATx = await rockPaperScissors.connect(playerA).deposit(depositAmount);
+    const depositPlayerATxWait = await depositPlayerATx.wait();
+    expectEvent(depositPlayerATxWait.events, "Deposit", playerA.address, depositAmount);
 
-  //   await testErc.connect(playerB).approve(rockPaperScissors.address, depositAmount);
-  //   const depositplayerBTx = await rockPaperScissors.connect(playerB).deposit(depositAmount);
-  //   const depositplayerBTxWait = await depositplayerBTx.wait();
-  //   expectEvent(depositplayerBTxWait.events, "Deposit", playerB.address, depositAmount);
+    await testErc.connect(playerB).approve(rockPaperScissors.address, depositAmount);
+    const depositplayerBTx = await rockPaperScissors.connect(playerB).deposit(depositAmount);
+    const depositplayerBTxWait = await depositplayerBTx.wait();
+    expectEvent(depositplayerBTxWait.events, "Deposit", playerB.address, depositAmount);
 
-  //   await checkBalance(rockPaperScissors, playerA, depositAmount, 0);
-  //   await checkBalance(rockPaperScissors, playerB, depositAmount, 0);
+    await checkBalance(rockPaperScissors, playerA, depositAmount, 0);
+    await checkBalance(rockPaperScissors, playerB, depositAmount, 0);
 
-  //   const secretPhase = "mysecret";
+    const secretPhase = "mysecret";
 
-  //   const playerAMoveHashed = hashMove(secretPhase, PlayMoveEnum.Paper);
+    const playerAMoveHashed = hashMove(secretPhase, PlayMoveEnum.Paper);
 
-  //   await rockPaperScissors.connect(playerA).setGameDeadlineInSeconds(1);
+    await rockPaperScissors.connect(playerA).setGameDeadlineInSeconds(1);
 
-  //   const playerAPlayTx = await rockPaperScissors.connect(playerA).startPrivateGame(playerAMoveHashed as string, playerB.address);
-  //   const playerAPlayTxWait = await playerAPlayTx.wait();
+    const playerAPlayTx = await rockPaperScissors.connect(playerA).startPrivateGame(playerAMoveHashed as string, playerB.address);
+    const playerAPlayTxWait = await playerAPlayTx.wait();
 
-  //   const event = expectEvent(playerAPlayTxWait.events, "GameStarted", playerA.address, playerB.address);
-  //   const gameId = event?.args?.gameId;
+    const event = expectEvent(playerAPlayTxWait.events, "GameStarted", playerA.address, playerB.address);
+    const gameId = event?.args?.gameId;
 
-  //   const oponnentPlayTx = await rockPaperScissors.connect(playerB).respond(gameId, PlayMoveEnum.Paper);
-  //   const oponnentPlayTxWait = await oponnentPlayTx.wait();
-  //   expectEvent(oponnentPlayTxWait.events, "GameResponded", playerA.address, playerB.address, gameId, PlayMoveEnum.Paper);
+    const oponnentPlayTx = await rockPaperScissors.connect(playerB).respond(gameId, PlayMoveEnum.Paper);
+    const oponnentPlayTxWait = await oponnentPlayTx.wait();
+    expectEvent(oponnentPlayTxWait.events, "GameResponded", playerA.address, playerB.address, gameId, PlayMoveEnum.Paper);
 
-  //   await delay(2000);
+    await delay(2000);
 
-  //   await checkBalance(rockPaperScissors, playerA, 0, betAmount);
-  //   await checkBalance(rockPaperScissors, playerB, 0, depositAmount);
+    await checkBalance(rockPaperScissors, playerA, 0, betAmount);
+    await checkBalance(rockPaperScissors, playerB, 0, depositAmount);
 
-  //   const revealTx = await rockPaperScissors.connect(playerC).revealAfterDeadline(gameId);
-  //   const revealTxWait = await revealTx.wait();
+    const revealTx = await rockPaperScissors.connect(playerC).revealAfterDeadline(gameId);
+    const revealTxWait = await revealTx.wait();
 
-  //   expectEvent(revealTxWait.events, "GameRevealedAfterDeadline", playerA.address, playerB.address, gameId);
+    expectEvent(revealTxWait.events, "GameRevealedAfterDeadline", playerA.address, playerB.address, gameId);
 
-  //   await checkBalance(rockPaperScissors, playerA, 0, 0);
-  //   await checkBalance(rockPaperScissors, playerB, 2 * depositAmount, 0);
-  // });
+    await checkBalance(rockPaperScissors, playerA, 0, 0);
+    await checkBalance(rockPaperScissors, playerB, 2 * depositAmount, 0);
+  });
 
   describe('play scenarios', () => {
     const tests = [
@@ -222,10 +222,12 @@ describe("RockPaperScissors play tests", function () {
         const oponnentPlayTx = await rockPaperScissors.connect(playerB).respond(gameId, args.playerBMove);
         const oponnentPlayTxWait = await oponnentPlayTx.wait();
         expectEvent(oponnentPlayTxWait.events, "GameResponded", playerA.address, playerB.address, gameId, args.playerBMove);
+        console.log(`oponnentPlayTxWait gas: ${oponnentPlayTxWait.gasUsed}`);
 
         const secretPhaseInBytes32 = ethers.utils.hexZeroPad(web3.utils.fromUtf8(secretPhase), 32);
         const revealTx = await rockPaperScissors.connect(playerA).reveal(secretPhaseInBytes32, gameId);
         const revealTxWait = await revealTx.wait();
+        console.log(`revealTxWait gas: ${revealTxWait.gasUsed}`);
 
         expectEvent(revealTxWait.events, "GameRevealed", playerA.address, playerB.address, gameId, expected.winner());
 

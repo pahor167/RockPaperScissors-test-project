@@ -12,7 +12,7 @@ contract RockPaperScissors is Ownable {
     struct Game {
         // player that started the game
         uint256 betAmount;
-        bytes32 playerAMove; //32
+        bytes32 playerAMove; //256
         address playerA; //160
         address playerB; // 160
         uint48 deadline; //48
@@ -100,14 +100,17 @@ contract RockPaperScissors is Ownable {
       * @param move play move
       */
     function respond(bytes32 gameId, GameMove move) public {
-       require(move != GameMove.None, "move != GameMove.None");
-       Game memory game = gameValidForResponse(gameId);
-       wager(game.betAmount);
+        require(move != GameMove.None, "move != GameMove.None");
+
+        Game storage game = _games[gameId];
+        require(game.playerAMove != 0, "game.playerAMove != 0");
+        require(game.playerB == address(0) || game.playerB == msg.sender);
+
+        wager(game.betAmount);
 
         game.playerB = msg.sender;
         game.gameState = GameState.Responded;
         game.playerBMove = move;
-        _games[gameId] = game;
         emit GameResponded(game.playerA, game.playerB, gameId, move);
     }
 
@@ -116,41 +119,15 @@ contract RockPaperScissors is Ownable {
       * @param gameId can be retrieved from GameStarted event
       */
     function reveal(bytes32 secretPhrase, bytes32 gameId) public {
-        Game memory game = _games[gameId];
+        Game storage game = _games[gameId];
         require(game.playerAMove != 0, "game.playerAMove != 0");
         require(game.playerA == msg.sender, "game.playerA == msg.sender");
         require(game.playerBMove != GameMove.None, "game.playerBMove != GameMove.None");
         require(game.gameState == GameState.Responded, "game.gameState == GameState.Responded");
 
-        // rock
-        bool moveDecoded = decodeMove(GameMove.Rock, secretPhrase, game.playerAMove);
-        address winner;
-        if (moveDecoded) {
-            winner = evaluate(GameMove.Rock, game.playerBMove, game.playerA, game.playerB, game.betAmount);
-        }
-
-        // paper
-        if (!moveDecoded) {
-            moveDecoded = decodeMove(GameMove.Paper, secretPhrase, game.playerAMove);
-            if (moveDecoded) {
-                winner = evaluate(GameMove.Paper, game.playerBMove, game.playerA, game.playerB, game.betAmount);
-            }
-        }
-
-        // scissors
-        if (!moveDecoded) {
-            moveDecoded = decodeMove(GameMove.Scissors, secretPhrase, game.playerAMove);
-            if (moveDecoded) {
-                winner = evaluate(GameMove.Scissors, game.playerBMove, game.playerA, game.playerB, game.betAmount);
-            }
-        }
-
-        if (!moveDecoded) {
-            revert("Secret phrase decode failed");
-        }
+        address winner = decodeMoveAndEvaluate(secretPhrase, game);
 
         game.gameState = GameState.Completed;
-        _games[gameId] = game;
         emit GameRevealed(game.playerA, game.playerB, gameId, winner);
     }
 
@@ -161,7 +138,7 @@ contract RockPaperScissors is Ownable {
        * @param gameId play move
        */
      function revealAfterDeadline(bytes32 gameId) public {
-        Game memory game = _games[gameId];
+        Game storage game = _games[gameId];
         require(game.gameState != GameState.Completed, "game.gameState != GameState.Completed");
         require(game.gameState != GameState.PassedDeadline, "game.gameState != GameState.PassedDeadline");
         require(game.deadline < block.timestamp, "game.deadline < block.timestamp");
@@ -178,7 +155,6 @@ contract RockPaperScissors is Ownable {
         }
 
         game.gameState = GameState.PassedDeadline;
-        _games[gameId] = game;
 
         emit GameRevealedAfterDeadline(game.playerA, game.playerB, gameId);
     }
@@ -198,6 +174,22 @@ contract RockPaperScissors is Ownable {
 
     function wageredBalanceOf(address account) public view returns (uint256) {
         return _wageredBalances[account];
+    }
+
+     function decodeMoveAndEvaluate(bytes32 secretPhrase, Game storage game) private returns(address) {
+        if (decodeMove(GameMove.Rock, secretPhrase, game.playerAMove)) {
+            return evaluate(GameMove.Rock, game.playerBMove, game.playerA, game.playerB, game.betAmount);
+        }
+
+        if (decodeMove(GameMove.Paper, secretPhrase, game.playerAMove)) {
+            return evaluate(GameMove.Paper, game.playerBMove, game.playerA, game.playerB, game.betAmount);
+        }
+
+        if (decodeMove(GameMove.Scissors, secretPhrase, game.playerAMove)) {
+            return evaluate(GameMove.Scissors, game.playerBMove, game.playerA, game.playerB, game.betAmount);
+        }
+
+        revert("Secret phrase decode failed");
     }
 
     function evaluate(GameMove playerAMove, GameMove playerBMove, address playerA, address playerB, uint256 betAmount) private returns(address) {
@@ -277,27 +269,18 @@ contract RockPaperScissors is Ownable {
         _wageredBalances[msg.sender] = wageredBalance + betAmount;
     }
 
-    function gameValidForResponse(bytes32 gameId) private view returns (Game memory) {
-        Game memory game = _games[gameId];
-        require(game.playerAMove != 0, "game.playerAMove != 0");
-        require(game.playerB == address(0) || game.playerB == msg.sender);
-        return game;
-    }
-
     function startGame(bytes32 hashedMove, address playerB) private {
         wager(_betAmount);
         bytes32 gameId = keccak256(abi.encodePacked(msg.sender, hashedMove, block.number));
-        Game memory game = Game({
-            playerA: msg.sender,
-            playerB: playerB,
-            betAmount: _betAmount,
-            playerAMove: hashedMove,
-            gameState: GameState.Started,
-            playerBMove: GameMove.None,
-            deadline: uint48(block.timestamp + _gameDeadlineInSeconds)
-        });
+        Game storage game = _games[gameId];
+        game.playerA = msg.sender;
+        game.betAmount = _betAmount;
+        game.playerAMove = hashedMove;
+        game.deadline = uint48(block.timestamp + _gameDeadlineInSeconds);
+        if (playerB != address(0)) {
+            game.playerB = playerB;
+        }
 
-        _games[gameId] = game;
         emit GameStarted(msg.sender, playerB, gameId);
     }
 }
