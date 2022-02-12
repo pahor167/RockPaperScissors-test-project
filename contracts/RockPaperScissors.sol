@@ -36,10 +36,12 @@ contract RockPaperScissors is Ownable {
     uint256 public _betAmount;
     uint32 public _gameDeadlineInSeconds = 10800;
 
+    // public variables
     mapping(address => uint256) public _balances;
     mapping(address => uint256) public _wageredBalances;
-    mapping(bytes32 => Game) _games;
+    mapping(bytes32 => Game) public _games;
 
+    // events
     event Deposit(address sender, uint256 amount);
     event Withdraw(address sender, uint256 amount);
     event GameStarted(address playerA, address playerB, bytes32 gameId);
@@ -108,7 +110,7 @@ contract RockPaperScissors is Ownable {
     }
 
     /** @dev
-     * @param hashedMove Expects keccak256(abi.encode(GameMove, secretPhrase).
+     * @param hashedMove HashedMove expects return value from keccak256(abi.encode(GameMove, secretPhrase).
      * @param playerB Opponent in private game.
      */
     function startPrivateGame(bytes32 hashedMove, address playerB) public {
