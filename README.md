@@ -6,7 +6,7 @@ Alice and Bob can play the classic game of rock, paper, scissors using ERC20 (of
 - [x] To enroll, each player needs to deposit the right token amount, possibly zero.  
     ***Bet amount is being set in contructor and owner of the contract is able to change it later on.***
 - [x] To play, each Bob and Alice need to submit their unique move.  
-    ***Player that starts the game needs to submit their move in hashed format so other players are not able to read the move from blockchain.***
+    ***Player that starts the game needs to submit their move in hashed format so other players are not able to read the move from blockchain. (Example in tests)***
 - [x] The contract decides and rewards the winner with all token wagered.  
 
 There are many ways to implement this, so we leave that up to you.  
@@ -28,6 +28,8 @@ Nice to have, but not necessary.
    2. ***We could incentivize players with potential platform token.***
    3. ***We could introduce lottery with tickets that would be dependant on amount and time of locked players funds (in such case game contract should have some fee from each game that would go to lottery pool)***
 - [x] Include any tests using Hardhat.
+
+    ***Please check "test" folder***
   
 Now fork this repo and do it!
   
