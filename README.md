@@ -1,6 +1,6 @@
-# RockPaperScissors test project
+# RockPaperScissors project
 
-You will create a smart contract named `RockPaperScissors` whereby:  
+
 Alice and Bob can play the classic game of rock, paper, scissors using ERC20 (of your choosing). ***It is possible to use any ERC20 which needs to be provided in contructor***   
   
 - [x] To enroll, each player needs to deposit the right token amount, possibly zero.  
@@ -30,9 +30,3 @@ Nice to have, but not necessary.
 - [x] Include any tests using Hardhat.
 
     ***Please check "test" folder***
-  
-Now fork this repo and do it!
-  
-When you're done, please send an email to zak@slingshot.finance (if you're not applying through Homerun) with a link to your fork or join the [Slingshot Discord channel](https://discord.gg/JNUnqYjwmV) and let us know.  
-  
-Happy hacking!
